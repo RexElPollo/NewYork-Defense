@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a339cdd872fce499dba09ba8ed9aa4, type: 3}
+  m_Name: RataGrande
+  m_EditorClassIdentifier: 
+  enemyName: Rata Grande
+  speed: 1
+  health: 3
+  prefab: {fileID: 4772399718861704650, guid: e5c2d7a72a31bf147b8ae29bbad1bb51, type: 3}

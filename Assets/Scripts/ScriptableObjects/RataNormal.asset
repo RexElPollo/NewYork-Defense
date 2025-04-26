@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a339cdd872fce499dba09ba8ed9aa4, type: 3}
+  m_Name: RataNormal
+  m_EditorClassIdentifier: 
+  enemyName: Rata Normal
+  speed: 1
+  health: 2
+  prefab: {fileID: 8496537794258923473, guid: 40e12a26a7bc247489c753abb43a9cd7, type: 3}

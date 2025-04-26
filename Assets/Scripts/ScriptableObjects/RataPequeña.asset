@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3a339cdd872fce499dba09ba8ed9aa4, type: 3}
+  m_Name: "RataPeque\xF1a"
+  m_EditorClassIdentifier: 
+  enemyName: "Rata Peque\xF1a"
+  speed: 2
+  health: 1
+  prefab: {fileID: 5095860066783114462, guid: d03baeac0ef6f784399b4268d2f71943, type: 3}
