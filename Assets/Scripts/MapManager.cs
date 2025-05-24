@@ -3,31 +3,38 @@ using System.Collections.Generic;
 
 public class MapManager : MonoBehaviour
 {
-    [Header("Referencia al Grid")]
-    public Grid grid;                
-    public Transform mapParent;      
-
-    [Header("Tamaño")]
-    public int width = 10, height = 10;
+    [Header("Dimensiones")]
+    public int width = 10;
+    public int height = 10;
 
     [Header("Start / End")]
-    public Vector2Int startCell, endCell;
+    public Vector2Int startCell;
+    public Vector2Int endCell;
 
     [Header("Prefabs")]
     public GameObject startPrefab;
     public GameObject endPrefab;
     public GameObject roadPrefab;
-    public GameObject spotPrefab;
-    public GameObject fillerPrefab;
+    public GameObject buildingSpotPrefab; 
+    public GameObject sidewalkPrefab;     
+    public GameObject buildingPrefab;
 
-    bool[,] occupied;
-    List<Vector2Int> pathCells;
+    [Header("Limite de banquetas de construccion")]
+    public int maxSpots = 6;
+
+    [Header("Grid + Parent")]
+    public Grid grid;
+    public Transform mapParent;
+
+    private bool[,] occupied;
+    private List<Vector2Int> pathCells;
 
     void Start()
     {
         GenerateMap();
     }
 
+    [ContextMenu("Generate Map")]
     public void GenerateMap()
     {
         ClearMap();
@@ -49,16 +56,15 @@ public class MapManager : MonoBehaviour
         var q = new Queue<Vector2Int>();
         prev[startCell] = startCell;
         q.Enqueue(startCell);
-        bool found = false;
 
-        while (q.Count > 0 && !found)
+        while (q.Count > 0 && !prev.ContainsKey(endCell))
         {
             var cell = q.Dequeue();
-            // Barajar direcciones
+            // barajar direcciones
             for (int i = 0; i < dirs.Length; i++)
             {
                 int r = Random.Range(i, dirs.Length);
-                var tmp = dirs[i]; dirs[i] = dirs[r]; dirs[r] = tmp;
+                (dirs[i], dirs[r]) = (dirs[r], dirs[i]);
             }
             foreach (var d in dirs)
             {
@@ -66,15 +72,15 @@ public class MapManager : MonoBehaviour
                 if (nxt.x < 0 || nxt.x >= width || nxt.y < 0 || nxt.y >= height) continue;
                 if (prev.ContainsKey(nxt)) continue;
                 prev[nxt] = cell;
-                if (nxt == endCell) { found = true; break; }
                 q.Enqueue(nxt);
+                if (nxt == endCell) break;
             }
         }
 
         pathCells = new List<Vector2Int>();
         if (!prev.ContainsKey(endCell))
         {
-            Debug.LogError("No se pudo generar ruta.");
+            Debug.LogError("No se encontro ruta start?end");
             return;
         }
         var cur = endCell;
@@ -89,26 +95,27 @@ public class MapManager : MonoBehaviour
 
     void InstantiateTiles()
     {
-        //instanciar en celdas
+        // Helper para instanciar y marcar ocupado
         void Place(Vector2Int cell, GameObject prefab)
         {
-            var pos = grid.CellToWorld(new Vector3Int(cell.x, 0, cell.y));
-            var go = Instantiate(prefab, pos, Quaternion.identity, mapParent);
+            var worldPos = grid.CellToWorld(new Vector3Int(cell.x, 0, cell.y));
+            Instantiate(prefab, worldPos, Quaternion.identity, mapParent);
             occupied[cell.x, cell.y] = true;
         }
 
-        // 1) Start / End
+        // 1 Start / End
         Place(startCell, startPrefab);
         Place(endCell, endPrefab);
 
-        // 2) Road segments
+        // 2 Camino
         foreach (var c in pathCells)
         {
             if (c == startCell || c == endCell) continue;
             Place(c, roadPrefab);
         }
 
-        // 3) Spots
+        // 3 Recolectar celdas adyacentes al camino
+        var adjacent = new List<Vector2Int>();
         for (int i = 0; i < pathCells.Count; i++)
         {
             var c = pathCells[i];
@@ -117,24 +124,50 @@ public class MapManager : MonoBehaviour
                 : c - pathCells[i - 1];
             var left = new Vector2Int(-dir.y, dir.x);
             var right = new Vector2Int(dir.y, -dir.x);
-            TryPlace(c + left);
-            TryPlace(c + right);
-        }
 
-        void TryPlace(Vector2Int c)
+            var lpos = c + left;
+            var rpos = c + right;
+            if (IsValid(lpos)) adjacent.Add(lpos);
+            if (IsValid(rpos)) adjacent.Add(rpos);
+        }
+        var uniqueAdj = new List<Vector2Int>(new HashSet<Vector2Int>(adjacent));
+
+        // 4 maxSpots para buildingSpot
+        var chosenSpots = new HashSet<Vector2Int>();
+        var candidates = new List<Vector2Int>(uniqueAdj);
+        while (chosenSpots.Count < maxSpots && candidates.Count > 0)
         {
-            if (c.x < 0 || c.x >= width || c.y < 0 || c.y >= height) return;
-            if (occupied[c.x, c.y]) return;
-            Place(c, spotPrefab);
+            int idx = Random.Range(0, candidates.Count);
+            chosenSpots.Add(candidates[idx]);
+            candidates.RemoveAt(idx);
         }
 
-        // 4) Fillers
+        // 5 Colocar buildingSpot y sidewalk en adyacentes
+        foreach (var pos in uniqueAdj)
+        {
+            if (chosenSpots.Contains(pos))
+                Place(pos, buildingSpotPrefab);
+            else
+                Place(pos, sidewalkPrefab);
+        }
+
+        // 6 Rellenar el resto con edificios
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                if (!occupied[x, y]) Place(new Vector2Int(x, y), fillerPrefab);
+                if (!occupied[x, y])
+                {
+                    Place(new Vector2Int(x, y), buildingPrefab);
+                }
             }
         }
+    }
+
+    bool IsValid(Vector2Int c)
+    {
+        return c.x >= 0 && c.x < width
+            && c.y >= 0 && c.y < height
+            && !occupied[c.x, c.y];
     }
 }
